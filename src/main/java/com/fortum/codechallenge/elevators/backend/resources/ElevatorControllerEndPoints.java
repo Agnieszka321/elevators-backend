@@ -1,26 +1,22 @@
 package com.fortum.codechallenge.elevators.backend.resources;
 
+import com.fortum.codechallenge.elevators.backend.api.CallingDirection;
 import com.fortum.codechallenge.elevators.backend.api.Direction;
-import com.fortum.codechallenge.elevators.backend.api.Elevator;
 import com.fortum.codechallenge.elevators.backend.api.ElevatorController;
-import com.fortum.codechallenge.elevators.backend.api.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Rest Resource.
+ * Rest resources used to control system of elevators
  */
 @EnableScheduling
 @CrossOrigin
@@ -34,116 +30,62 @@ public final class ElevatorControllerEndPoints {
     @Autowired
     private SimpMessagingTemplate template;
 
-
-    private List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-
-    @RequestMapping(value = "/port", method = RequestMethod.GET)
-    public SseEmitter elevators() {
-        SseEmitter sseEmitter = new SseEmitter();
-        emitters.add(sseEmitter);
-        return sseEmitter;
-    }
-
-
     /**
-     * Ping service to test if we are alive.
+     * Service and websocket used to get a snapshot of the current positions of the elevators
      *
-     * @return String pong
-     */
-    @RequestMapping(value = "/ping", method = RequestMethod.GET)
-    public String ping() {
-        return "pong";
-    }
-
-    /**
-     * Service used to get current positions of the elevators
-     *
-     * @return String pong
+     * @return List of Integers - each of list elements indicates position (number of floor) of one elevator -
+     * first element = elevator with id =1, second = elevator with id2 etc.
      */
     @Scheduled(fixedRate = 500)
     @MessageMapping("/positions")
-//    @SendTo("/topic/positions")
-//    @RequestMapping(value = "/positions", method = RequestMethod.GET)
+    @RequestMapping(value = "/positions", method = RequestMethod.GET)
     public List<Integer> getElevatorsPositions() {
-
         this.template.convertAndSend("/topic/positions",
                 Arrays.toString(elevatorController.getElevatorsPositions().toArray()));
-        if (elevatorController.getElevators().isEmpty()) return Collections.emptyList();
         return elevatorController.getElevatorsPositions();
     }
 
 
     /**
-     * Service used to get current positions of the elevators
+     * Service used to call elevator by caller waiting on the floor
      *
-     * @return String pong
+     * @param floor number of the floor from which the elevator was called
+     * @param direction direction chosen in caller's request
+     * @return int - id of the elevator which was chosen to serve the caller's request
      */
-
-
     @RequestMapping(value = "/call", method = RequestMethod.POST)
-    public int callElevator(@RequestParam(name="floor") Integer floor, @RequestParam(name="direction")
-            Direction direction) {
-        System.out.println(direction);
-        if (elevatorController.getElevators().isEmpty() || floor < 0 || floor > elevatorController.getNumberOfFloors()) {
-            return -1;
-        } else {
-            Elevator elevator = elevatorController.requestElevator(floor, direction);
-            return elevator.getId();
-        }
+    public int callElevator(@RequestParam(name = "floor") Integer floor, @RequestParam(name = "direction")
+            CallingDirection direction) {
+        return elevatorController.requestElevator(floor, Direction.getDirection(direction));
     }
 
     /**
-     * Service used to get current positions of the elevators
+     * Service used to install the elevators in the building
      *
-     * @return String pong
+     * @param numberOfElevators number of elevators which should be installed
+     * @param numberOfFloors number of floors in the building
      */
     @RequestMapping(value = "/install", method = RequestMethod.POST)
-    public boolean installElevators(
+    public void installElevators(
             @RequestParam @Min(value = 1, message = "There should be at least 1 elevator installed")
             @Max(value = 10, message = "Number of elevators cannot exceed 10") int numberOfElevators,
             @RequestParam @Min(value = 1, message = "There should be at least 1 floor in the building")
             @Max(value = 20, message = " Number of floors cannot exceed 20") int numberOfFloors) {
-        elevatorController.installElevators(numberOfElevators,numberOfFloors);
-        return true;
-//        if (elevatorController.getElevators().isEmpty()) {
-//            elevatorController.installElevators(numberOfElevators, numberOfFloors + 1);
-//            return true;
-//        }
-//        return false;
+        elevatorController.installElevators(numberOfElevators, numberOfFloors);
     }
-
 
     /**
-     * Service used to get current positions of the elevators
+     * Service used when passenger inside the elevator chooses floor number towards which he wants to go
      *
-     * @return String pong
+     * @param elevatorId id of the elevator the passenger is in
+     * @param floor number of the floor chosen by passenger
+     * @return boolean - true if the floor was correctly addressed,
+     * false - if the given floor or elevator for the id does not exist
      */
-
     @RequestMapping(value = "/adressFloor", method = RequestMethod.POST)
     public boolean addressFloor(int elevatorId, int floor) {
-
-        if(elevatorController.getElevators().get(elevatorId) == null){
-            return false;
-        }
-        else{
-            elevatorController.chooseDestinationFloorWhenInside(elevatorId, floor);
-            return true;
-        }
-    }
-
-
-    @RequestMapping(value = "/statuses", method = RequestMethod.GET)
-    public List<Status> getElevatorsStatuses() {
-
-//        if(elevatorController.getElevators().get(elevatorId) == null){
-//            return true;
-//        }
-
-//        else
-
-        return elevatorController.getElevatorsStatuses();
+        return elevatorController.chooseDestinationFloorWhenInside(elevatorId, floor);
 
     }
-
 
 }

@@ -6,7 +6,10 @@ import com.fortum.codechallenge.elevators.backend.api.ElevatorController;
 import com.fortum.codechallenge.elevators.backend.api.Status;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -18,8 +21,6 @@ import java.util.stream.Collectors;
 public class ElevatorControllerImpl implements ElevatorController {
 
     private Map<Integer, Elevator> elevators = new HashMap<>();
-
-    private Integer numberOfElevators;
 
     private Integer numberOfFloors;
 
@@ -34,7 +35,7 @@ public class ElevatorControllerImpl implements ElevatorController {
      * @param chosenDirection - direction chosen in the request
      * @return elevator which best matches the request
      */
-    public Elevator findBestElevator(int callingFloor, Direction chosenDirection) {
+    private Elevator findBestElevator(int callingFloor, Direction chosenDirection) {
         int matchPoints = -numberOfFloors * 3;
         Elevator chosenElevator = elevators.get(0);
         for (Elevator elevator : elevators.values()) {
@@ -82,7 +83,6 @@ public class ElevatorControllerImpl implements ElevatorController {
     public void installElevators(int numberOfElevators, int numberOfFloors) {
         this.elevators.clear();
         this.numberOfFloors = numberOfFloors;
-        this.numberOfElevators = numberOfElevators;
         for (int i = 0; i < numberOfElevators; i++) {
             int floorNumber = (i % 3 == 2) ? numberOfFloors - 1 : 0;
             this.elevators.put(i, new ElevatorImpl(i, floorNumber, numberOfFloors));
@@ -94,7 +94,7 @@ public class ElevatorControllerImpl implements ElevatorController {
      * @param toFloor
      * @param direction
      */
-    public void addressFloor(Elevator elevator, int toFloor, Direction direction) {
+    private void addressFloor(Elevator elevator, int toFloor, Direction direction) {
 
         if (elevator.getStatus() == Status.WAIT) {
             elevator.startElevator(toFloor);
@@ -121,26 +121,32 @@ public class ElevatorControllerImpl implements ElevatorController {
      *
      * @param toFloor addressed floor as integer.
      * @param direction
-     * @return
+     * @return integer - id of the elevator which will serve the request
      */
     @Override
-    public Elevator requestElevator(int toFloor, Direction direction) {
+    public int requestElevator(int toFloor, Direction direction) {
+        if (toFloor > numberOfFloors || this.elevators.isEmpty()) return -1;
         Elevator elevator = findBestElevator(toFloor, direction);
         this.addressFloor(elevator, toFloor, direction);
-        return elevator;
+        return elevator.getId();
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param elevatorNumber number of the elevator inside which the request was made
+     * @param elevatorId number of the elevator inside which the request was made
      * @param toFloor        destination floor chosen in the request
+     * @return boolean indicating whether elevator for given id was found and target floor was properly addressed
      */
     @Override
-    public void chooseDestinationFloorWhenInside(int elevatorNumber, int toFloor) {
-        Elevator elevator = this.elevators.get(elevatorNumber);
+    public boolean chooseDestinationFloorWhenInside(int elevatorId, int toFloor) {
+        Elevator elevator = this.elevators.get(elevatorId);
+        if (elevator == null || toFloor > this.numberOfFloors) {
+            return false;
+        }
         Direction direction = toFloor < elevator.currentFloor() ? Direction.DOWN : Direction.UP;
         addressFloor(elevator, toFloor, direction);
+        return true;
 
     }
 
@@ -149,21 +155,17 @@ public class ElevatorControllerImpl implements ElevatorController {
      */
     @Override
     public List<Elevator> getElevators() {
-        return Collections.unmodifiableList(new ArrayList(elevators.values()));
+        return List.copyOf(new ArrayList(elevators.values()));
     }
 
     @Override
-    public Integer getNumberOfFloors() {
+    public int getNumberOfFloors() {
         return this.numberOfFloors;
     }
 
     @Override
     public List<Integer> getElevatorsPositions() {
-        return elevators.values().stream().map(elevator -> elevator.currentFloor()).collect(Collectors.toList());
+        return elevators.values().stream().map(Elevator::currentFloor).collect(Collectors.toList());
     }
 
-    @Override
-    public List<Status> getElevatorsStatuses() {
-        return this.elevators.values().stream().map(t -> t.getStatus()).collect(Collectors.toList());
-    }
 }

@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -16,7 +15,6 @@ import java.util.concurrent.Executors;
 /**
  * Preconfigured Spring Application boot class.
  */
-//@EnableSwagger2
 @SpringBootApplication
 @PropertySources({@PropertySource("classpath:application.properties")})
 public class ElevatorApplication {

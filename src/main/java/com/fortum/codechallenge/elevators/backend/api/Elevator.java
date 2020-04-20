@@ -6,13 +6,11 @@ package com.fortum.codechallenge.elevators.backend.api;
 public interface Elevator {
 
     /**
-     * Tells which direction is the elevator going in.
+     * Tells which status is the current state of elevator
      *
-     * @return Direction Enumeration value describing the direction.
+     * @return Status Enumeration value describing the elevator status.
      */
     Status getStatus();
-
-
 
     /**
      * If the elevator is moving. This is the target floor.
@@ -22,7 +20,7 @@ public interface Elevator {
     int getAddressedFloor();
 
     /**
-     * Get the Id of this elevator.
+     * Get the id of this elevator.
      *
      * @return primitive integer representing the elevator.
      */
@@ -42,10 +40,25 @@ public interface Elevator {
      */
     int currentFloor();
 
-    void planStop(int onFloor,Direction direction);
+    /**
+     * Tells the elevator to stop on the given floor
+     *
+     * @param onFloor   number of the floor on which (when passed by) the elevator should stop
+     * @param direction direction in which the elevator should be going so that planned stop matches
+     *                  to its planned direction
+     */
+    void planStop(int onFloor, Direction direction);
 
-    Direction getCurrentDirection() ;
+    /**
+     * Used to get current direction of the elevator
+     * @return Direction Enumeration value describing current direction.
+     */
+    Direction getCurrentDirection();
 
+    /**
+     * Used to set target floor of the elevator
+     * @param toFloor primitive integer - number of the floor the elevator should head toward
+     */
     void setAddressedFloor(int toFloor);
 
 }

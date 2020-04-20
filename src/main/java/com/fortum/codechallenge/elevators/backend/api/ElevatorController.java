@@ -1,10 +1,6 @@
 package com.fortum.codechallenge.elevators.backend.api;
 
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -17,9 +13,9 @@ public interface ElevatorController {
      *
      * @param toFloor addressed floor as integer.
      * @param direction chosen direction in which the passenger wants to move
-     * @return The Elevator that is going to the floor, if there is one to move.
+     * @return Id of the Elevator that is going to the floor, if there is one to move.
      */
-    Elevator requestElevator(int toFloor, Direction direction);
+    int requestElevator(int toFloor, Direction direction);
 
     /**
      * A snapshot list of all elevators in the system.
@@ -32,8 +28,9 @@ public interface ElevatorController {
      * Method used to choose destination floor from inside of the elevator
      * @param elevatorNumber number of the elevator inside which the request was made
      * @param toFloor destination floor chosen
+     * @return boolean indicating whether elevator for given id was found and target floor was properly addressed
      */
-    void chooseDestinationFloorWhenInside(int elevatorNumber, int toFloor);
+    boolean chooseDestinationFloorWhenInside(int elevatorNumber, int toFloor);
 
 
     /**
@@ -50,7 +47,10 @@ public interface ElevatorController {
      */
     List<Integer> getElevatorsPositions();
 
-    List<Status> getElevatorsStatuses();
-
-    Integer getNumberOfFloors();
+    /**
+     * Method used to get number of the floors in the building the controller controls
+     *
+     * @return
+     */
+    int getNumberOfFloors();
 }
