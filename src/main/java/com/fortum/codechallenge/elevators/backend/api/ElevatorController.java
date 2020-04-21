@@ -43,14 +43,14 @@ public interface ElevatorController {
 
     /**
      * A snapshot list of all elevators' positions in the system.
-     * @return
+     * @return list of Integers - indicating numbers of floors currently occupied by the elevators
      */
     List<Integer> getElevatorsPositions();
 
     /**
      * Method used to get number of the floors in the building the controller controls
      *
-     * @return
+     * @return primitive type int - number of floors in the building
      */
     int getNumberOfFloors();
 }

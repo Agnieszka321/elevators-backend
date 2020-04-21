@@ -47,6 +47,7 @@ public class ElevatorImpl implements Elevator, Runnable {
         return this.id;
     }
 
+
     @Override
     public void startElevator(int toFloor) {
         this.addressedFloor = toFloor;
@@ -76,18 +77,25 @@ public class ElevatorImpl implements Elevator, Runnable {
         this.addressedFloor = addressedFloor;
     }
 
-    public int getCurrentFloor() {
-        return currentFloor;
-    }
-
     @Override
     public Direction getCurrentDirection() {
         return currentDirection;
     }
 
+    private void startWaiting() {
+        this.status = Status.WAIT;
+        this.currentDirection = Direction.NONE;
+    }
     public void run() {
         while (this.currentFloor != this.addressedFloor) {
             int movement = (currentDirection == Direction.UP) ? 1 : -1;
+
+            // Controller should not allow for such situation - but in case of broken controller we don't want
+            // elevator to break free through the ceiling
+            if (currentFloor + movement >= shouldStop.size() || currentFloor + movement < 0) {
+                this.startWaiting();
+                return;
+            }
             currentFloor = currentFloor + movement;
             try {
                 if (shouldStop.get(currentFloor) == currentDirection ||
@@ -102,21 +110,15 @@ public class ElevatorImpl implements Elevator, Runnable {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                return;
             }
             if (this.currentFloor == this.addressedFloor && shouldStop.contains(Direction.opposite(currentDirection))) {
-
-                if (currentDirection == Direction.UP) {
-                    this.currentDirection = Direction.DOWN;
-                    this.addressedFloor = shouldStop.indexOf(Direction.DOWN);
-                } else {
-                    this.currentDirection = Direction.UP;
-                    this.addressedFloor = shouldStop.lastIndexOf(Direction.UP);
-                }
-
+                this.addressedFloor = currentDirection == Direction.UP ?
+                        shouldStop.indexOf(Direction.DOWN) : shouldStop.lastIndexOf(Direction.UP);
+                this.currentDirection = Direction.opposite(this.currentDirection);
             }
         }
-        this.status = Status.WAIT;
-
+        startWaiting();
     }
 
     private void start() {

@@ -1,5 +1,8 @@
 package com.fortum.codechallenge.elevators.backend.api;
 
+/**
+ * Enumeration indicating direction of the elevator and direction for its planned stops
+ */
 public enum Direction {
     UP,
     DOWN,
