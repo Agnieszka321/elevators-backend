@@ -7,6 +7,9 @@ import com.fortum.codechallenge.elevators.backend.api.Status;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Implementation of the interface {@link Elevator}
+ */
 public class ElevatorImpl implements Elevator, Runnable {
 
     private int id;
@@ -86,6 +89,7 @@ public class ElevatorImpl implements Elevator, Runnable {
         this.status = Status.WAIT;
         this.currentDirection = Direction.NONE;
     }
+
     public void run() {
         while (this.currentFloor != this.addressedFloor) {
             int movement = (currentDirection == Direction.UP) ? 1 : -1;
