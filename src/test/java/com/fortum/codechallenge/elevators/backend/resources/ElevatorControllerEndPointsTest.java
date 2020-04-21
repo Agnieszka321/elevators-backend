@@ -39,12 +39,12 @@ public class ElevatorControllerEndPointsTest {
         Mockito.when(elevatorController.chooseDestinationFloorWhenInside(99, 4)).thenReturn(false);
 
         //when... then
-        webClient.post().uri(uriBuilder -> uriBuilder.path("/api/rest/v1/adress-elevator")
+        webClient.post().uri(uriBuilder -> uriBuilder.path("/api/rest/v1/address-elevator")
                 .queryParam("elevatorId", "1")
                 .queryParam("floor", "4").build()).exchange().expectStatus().isOk()
                 .expectBody(boolean.class).isEqualTo(true);
 
-        webClient.post().uri(uriBuilder -> uriBuilder.path("/api/rest/v1/adress-elevator")
+        webClient.post().uri(uriBuilder -> uriBuilder.path("/api/rest/v1/address-elevator")
                 .queryParam("elevatorId", "99")
                 .queryParam("floor", "4").build()).exchange().expectStatus().isOk()
                 .expectBody(boolean.class).isEqualTo(false);
