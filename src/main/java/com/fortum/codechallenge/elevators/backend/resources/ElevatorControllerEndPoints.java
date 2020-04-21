@@ -82,8 +82,8 @@ public final class ElevatorControllerEndPoints {
      * @return boolean - true if the floor was correctly addressed,
      * false - if the given floor or elevator for the id does not exist
      */
-    @RequestMapping(value = "/adressFloor", method = RequestMethod.POST)
-    public boolean addressFloor(int elevatorId, int floor) {
+    @RequestMapping(value = "/adress-elevator", method = RequestMethod.POST)
+    public boolean addressElevator(@RequestParam int elevatorId, @RequestParam int floor) {
         return elevatorController.chooseDestinationFloorWhenInside(elevatorId, floor);
 
     }
