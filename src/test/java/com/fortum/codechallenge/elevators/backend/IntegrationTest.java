@@ -25,7 +25,8 @@ public class IntegrationTest {
     private ElevatorControllerEndPoints endpoints;
 
     @Test
-    public void simulateAnElevatorShaft() {
+    @SuppressWarnings("StatementWithEmptyBody")
+    public void simulateAnElevatorShaftTest() {
 
         endpoints.installElevators(4, 10);
 
