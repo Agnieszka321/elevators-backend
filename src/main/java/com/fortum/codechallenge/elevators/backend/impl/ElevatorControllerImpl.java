@@ -90,9 +90,10 @@ public class ElevatorControllerImpl implements ElevatorController {
     }
 
     /**
-     * @param elevator
-     * @param toFloor
-     * @param direction
+     * Method used to address target floor of the elevator
+     * @param elevator elevator which target field will be addressed
+     * @param toFloor number of the target floor
+     * @param direction direction  which the elevator should be moving in
      */
     private void addressFloor(Elevator elevator, int toFloor, Direction direction) {
 
@@ -168,4 +169,8 @@ public class ElevatorControllerImpl implements ElevatorController {
         return elevators.values().stream().map(Elevator::currentFloor).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Status> getELevatorStatuses() {
+        return elevators.values().stream().map(Elevator::getStatus).collect(Collectors.toList());
+    }
 }

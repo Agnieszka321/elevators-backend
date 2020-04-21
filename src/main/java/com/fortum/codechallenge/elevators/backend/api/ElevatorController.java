@@ -47,6 +47,14 @@ public interface ElevatorController {
      */
     List<Integer> getElevatorsPositions();
 
+
+    /**
+     * A snapshot list of all elevators' states in the system.
+     *
+     * @return list of Statuses - indicating current statuses of installed elevators
+     */
+    List<Status> getELevatorStatuses();
+
     /**
      * Method used to get number of the floors in the building the controller controls
      *

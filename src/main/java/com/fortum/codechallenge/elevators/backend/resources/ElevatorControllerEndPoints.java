@@ -3,6 +3,7 @@ package com.fortum.codechallenge.elevators.backend.resources;
 import com.fortum.codechallenge.elevators.backend.api.CallingDirection;
 import com.fortum.codechallenge.elevators.backend.api.Direction;
 import com.fortum.codechallenge.elevators.backend.api.ElevatorController;
+import com.fortum.codechallenge.elevators.backend.api.Status;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -115,5 +116,26 @@ public final class ElevatorControllerEndPoints {
         return elevatorController.chooseDestinationFloorWhenInside(elevatorId, floor);
 
     }
+
+
+    /**
+     * Service and websocket used to get a snapshot of the current positions of the elevators
+     *
+     * @return List of Integers - each of list elements indicates position (number of floor) of one elevator -
+     * first element = elevator with id =1, second = elevator with id2 etc.
+     */
+    @RequestMapping(value = "/elevators-states", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "The service allows to get current states of the elevators in the building",
+            notes = "The Service allows to get current states of the elevators in the building - their states" +
+                    " are given in form of array, each of the array's element indicates state" +
+                    " (RUN/WAIT/OUT OF SERVICE) of one elevator")
+
+    public List<Status> getElevatorsStatuses() {
+        return elevatorController.getELevatorStatuses();
+    }
+
+
+
 
 }
