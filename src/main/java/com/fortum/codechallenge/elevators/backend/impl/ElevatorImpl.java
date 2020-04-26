@@ -26,6 +26,13 @@ public class ElevatorImpl implements Elevator, Runnable {
 
     private Direction currentDirection;
 
+    /**
+     * Class constructor
+     *
+     * @param id             id of the elevator
+     * @param currentFloor   number of floor on which the elevator should be installed
+     * @param numberOfFloors number of floors in the building in which elevator should be installed
+     */
     public ElevatorImpl(int id, int currentFloor, int numberOfFloors) {
         this.id = id;
         this.status = Status.WAIT;
@@ -45,11 +52,15 @@ public class ElevatorImpl implements Elevator, Runnable {
         return addressedFloor;
     }
 
+    public void setAddressedFloor(int addressedFloor) {
+        this.planStop(this.addressedFloor, this.currentDirection);
+        this.addressedFloor = addressedFloor;
+    }
+
     @Override
     public int getId() {
         return this.id;
     }
-
 
     @Override
     public void startElevator(int toFloor) {
@@ -76,39 +87,33 @@ public class ElevatorImpl implements Elevator, Runnable {
         }
     }
 
-    public void setAddressedFloor(int addressedFloor) {
-        this.addressedFloor = addressedFloor;
-    }
-
     @Override
     public Direction getCurrentDirection() {
         return currentDirection;
     }
 
-    private void startWaiting() {
-        this.status = Status.WAIT;
-        this.currentDirection = Direction.NONE;
+
+    @Override
+    public boolean isAhead(int floorNumber) {
+        return (isMovingUp() && isLowerThan(floorNumber)) || (isMovingDown() && isHigherThan(floorNumber));
     }
 
     public void run() {
-        while (this.currentFloor != this.addressedFloor) {
-            int movement = (currentDirection == Direction.UP) ? 1 : -1;
+        while (!hasArrivedToAddressedFloor()) {
 
-            // Controller should not allow for such situation - but in case of broken controller we don't want
-            // elevator to break free through the ceiling
-            if (currentFloor + movement >= shouldStop.size() || currentFloor + movement < 0) {
+            if ((hasReachedTopFloor() && isMovingUp()) || (isMovingDown() && hasReachedLowestFloor())) {
                 this.startWaiting();
                 return;
             }
-            currentFloor = currentFloor + movement;
+
+            if (isMovingUp()) moveOneFloorUp();
+            else moveOneFloorDown();
+
+
             try {
-                if (shouldStop.get(currentFloor) == currentDirection ||
-                        shouldStop.get(currentFloor) == Direction.BOTH ||
-                        this.addressedFloor == currentFloor) {
+                if (shouldStopAtCurrentFloor()) {
                     Thread.sleep(1000);
-                    shouldStop.set(currentFloor,
-                            shouldStop.get(currentFloor) == Direction.BOTH ?
-                                    Direction.opposite(currentDirection) : Direction.NONE);
+                    removeCurrentFloorFromPlannedStops();
                 } else {
                     Thread.sleep(600);
                 }
@@ -116,14 +121,116 @@ public class ElevatorImpl implements Elevator, Runnable {
                 e.printStackTrace();
                 return;
             }
-            if (this.currentFloor == this.addressedFloor && shouldStop.contains(Direction.opposite(currentDirection))) {
-                this.addressedFloor = currentDirection == Direction.UP ?
-                        shouldStop.indexOf(Direction.DOWN) : shouldStop.lastIndexOf(Direction.UP);
-                this.currentDirection = Direction.opposite(this.currentDirection);
+            if (shouldChangeTheDirection()) {
+                changeAddressedFloorChangeDirection();
+                changeCurrentDirectionToOpposite();
             }
         }
         startWaiting();
     }
+
+    @Override
+    public boolean shouldChangeAddressedFloor(int floorNumber) {
+        return
+                (isMovingDown() && isAddressedFloorHigherThan(floorNumber))
+                        || (isMovingUp() && isAddressedFloorLowerThan(floorNumber));
+    }
+
+    private void startWaiting() {
+        this.status = Status.WAIT;
+        this.currentDirection = Direction.NONE;
+    }
+
+    private boolean hasArrivedToAddressedFloor() {
+        return this.currentFloor == this.addressedFloor;
+    }
+
+    private boolean hasArrivedToPlannedStopFloor() {
+        return (shouldStop.get(currentFloor) == currentDirection ||
+                shouldStop.get(currentFloor) == Direction.BOTH);
+    }
+
+    private boolean isMovingUp() {
+        return this.currentDirection == Direction.UP;
+    }
+
+    private void moveOneFloorUp() {
+        currentFloor = currentFloor + 1;
+    }
+
+    private void moveOneFloorDown() {
+        currentFloor = currentFloor - 1;
+    }
+
+    private boolean shouldStopAtCurrentFloor() {
+        return (hasArrivedToPlannedStopFloor() ||
+                hasArrivedToAddressedFloor());
+    }
+
+    private void removeCurrentFloorFromPlannedStops() {
+        shouldStop.set(currentFloor, shouldStopForBothDirections() ?
+                Direction.opposite(currentDirection) : Direction.NONE);
+    }
+
+    private boolean shouldStopForBothDirections() {
+        return shouldStop.get(currentFloor) == Direction.BOTH;
+    }
+
+    private boolean hasPlannedStopsInOppositeDirection() {
+        return shouldStop.contains(Direction.opposite(currentDirection));
+    }
+
+    private boolean shouldChangeTheDirection() {
+        return (hasArrivedToAddressedFloor() && hasPlannedStopsInOppositeDirection());
+    }
+
+    private boolean hasReachedTopFloor() {
+        return currentFloor == shouldStop.size() - 1;
+    }
+
+    private boolean hasReachedLowestFloor() {
+        return currentFloor == 0;
+    }
+
+    private boolean isMovingDown() {
+        return this.currentDirection == Direction.DOWN;
+    }
+
+
+    private boolean isLowerThan(int floorNumber) {
+        return this.currentFloor < floorNumber;
+    }
+
+    private boolean isHigherThan(int floorNumber) {
+        return this.currentFloor > floorNumber;
+    }
+
+    private void changeAddressedFloorChangeDirection() {
+        this.addressedFloor = isMovingUp() ?
+                getNumberOfTheLowestPlannedStop() : getNumberOfTheHighestPlannedStop();
+    }
+
+    private int getNumberOfTheHighestPlannedStop() {
+        return shouldStop.lastIndexOf(Direction.UP);
+    }
+
+    private int getNumberOfTheLowestPlannedStop() {
+        return shouldStop.indexOf(Direction.DOWN);
+    }
+
+    private void changeCurrentDirectionToOpposite() {
+        this.currentDirection = Direction.opposite(this.currentDirection);
+    }
+
+    private boolean isAddressedFloorHigherThan(int floorNumber) {
+        return this.addressedFloor > floorNumber;
+    }
+
+
+    private boolean isAddressedFloorLowerThan(int floorNumber) {
+        return this.addressedFloor < floorNumber;
+    }
+
 
     private void start() {
         if (elevatorRunningThread == null || !elevatorRunningThread.isAlive()) {

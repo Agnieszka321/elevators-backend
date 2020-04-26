@@ -73,8 +73,7 @@ public final class ElevatorControllerEndPoints {
     public int callElevator(
             @RequestParam(name = "floor") @Min(value = 0, message = "Elevator cannot go below the 0 floor")
                     Integer floor,
-            @RequestParam(name = "direction")
-                    CallingDirection direction) {
+            @RequestParam(name = "direction") CallingDirection direction) {
         return elevatorController.requestElevator(floor, Direction.getDirection(direction));
     }
 
@@ -109,9 +108,7 @@ public final class ElevatorControllerEndPoints {
             value = "The service used by the user (inside the lift) to choose elevator's target floor "
     )
     @RequestMapping(value = "/address-elevator", method = RequestMethod.POST)
-    public boolean addressElevator(
-            @RequestParam int elevatorId,
-            @RequestParam int floor) {
+    public boolean addressElevator(@RequestParam int elevatorId, @RequestParam int floor) {
 
         return elevatorController.chooseDestinationFloorWhenInside(elevatorId, floor);
 
@@ -132,10 +129,8 @@ public final class ElevatorControllerEndPoints {
                     " (RUN/WAIT/OUT OF SERVICE) of one elevator")
 
     public List<Status> getElevatorsStatuses() {
-        return elevatorController.getELevatorStatuses();
+        return elevatorController.getElevatorStatuses();
     }
-
-
 
 
 }

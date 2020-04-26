@@ -51,14 +51,33 @@ public interface Elevator {
 
     /**
      * Used to get current direction of the elevator
+     *
      * @return Direction Enumeration value describing current direction.
      */
     Direction getCurrentDirection();
 
     /**
      * Used to set target floor of the elevator
+     *
      * @param toFloor primitive integer - number of the floor the elevator should head toward
      */
     void setAddressedFloor(int toFloor);
+
+    /**
+     * Used to check if moving elevator is ahead chosen floor or if it was already passed by
+     *
+     * @param Floor number of floor
+     * @return true if elevator is ahead
+     */
+    boolean isAhead(int Floor);
+
+    /**
+     * Used to check whether addressed floor should be changed
+     *
+     * @param floorNumber number of new addressed floor proposition
+     * @return true if addressed floor should be changed
+     */
+    boolean shouldChangeAddressedFloor(int floorNumber);
+
 
 }

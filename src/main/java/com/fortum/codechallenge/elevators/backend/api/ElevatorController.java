@@ -53,7 +53,7 @@ public interface ElevatorController {
      *
      * @return list of Statuses - indicating current statuses of installed elevators
      */
-    List<Status> getELevatorStatuses();
+    List<Status> getElevatorStatuses();
 
     /**
      * Method used to get number of the floors in the building the controller controls
